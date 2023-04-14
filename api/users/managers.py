@@ -4,11 +4,13 @@ from django.contrib.auth.models import (
 
 
 class CustomUserManager(BaseUserManager):
-    def _create_user(self, name, surname, age, doctor, number, password, is_staff, is_superuser, **extra_fields):
+    def _create_user(self, email, name, surname, age, doctor, number, password, is_staff, is_superuser, **extra_fields):
+        if not email:
+            raise ValueError("Вы не ввели email!")
         if not name:
             raise ValueError("Вы не ввели ваше имя!")
         if not surname:
-            raise ValueError("Вы не ввели вашу фамилию")
+            raise ValueError("Вы не ввели вашу фамилию!")
         if not age:
             raise ValueError("Вы не ввели ваш возраст!")
         if not doctor:
@@ -18,6 +20,7 @@ class CustomUserManager(BaseUserManager):
         if not password:
             raise ValueError("Вы не ввели пароль!")
         user = self.model(
+            email=email,
             name=name,
             surname=surname,
             age=age,
@@ -34,13 +37,13 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def _create_superuser(self, name, password, **extra_fields):
-        if not name:
-            raise ValueError("Вы не ввели ваше имя !")
+    def _create_superuser(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError("Вы не ввели ваше email !")
         if not password:
             raise ValueError("Вы не ввели пароль!")
         superuser = self.model(
-            name=name,
+            email=email,
             password=password,
             is_active=True,
             is_staff=True,
@@ -54,6 +57,7 @@ class CustomUserManager(BaseUserManager):
 
     def create_user(
             self,
+            email,
             name,
             surname,
             age,
@@ -63,15 +67,15 @@ class CustomUserManager(BaseUserManager):
             **extra_fields
     ):
 
-        return self._create_user(name, surname, age, doctor, number, password, is_staff=False, is_superuser=False,
+        return self._create_user(email, name, surname, age, doctor, number, password, is_staff=False, is_superuser=False,
                                  **extra_fields)
 
     def create_superuser(
             self,
-            name,
+            email,
             password=None,
     ):
 
-        superuser = self._create_superuser(name, password)
+        superuser = self._create_superuser(email, password)
         superuser.save(using=self._db)
         return superuser

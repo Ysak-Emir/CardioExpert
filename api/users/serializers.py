@@ -1,3 +1,4 @@
+from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
 
 from .models import User
@@ -8,59 +9,63 @@ from rest_framework import serializers
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 
-User = get_user_model()
+
+# User = get_user_model()
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(required=True, write_only=True)
+    name = serializers.CharField(max_length=50, min_length=3, write_only=True)
+    surname = serializers.CharField(max_length=50, min_length=3, write_only=True)
+    age = serializers.IntegerField(max_value=120, min_value=3, write_only=True)
+    number = serializers.IntegerField(min_value=3, write_only=True)
+    doctor = serializers.CharField(min_length=3, max_length=80, write_only=True)
     password = serializers.CharField(max_length=128, min_length=8, write_only=True)
     password2 = serializers.CharField(max_length=128, min_length=8, write_only=True)
 
     class Meta:
         model = User
-        fields = 'id email name surname age doctor number password password2'.split()
+        fields = '__all__'
 
-    def save(self, *args, **kwargs):
-        user = User(
-            name=self.validated_data["name"],
-            surname=self.validated_data["surname"],
-            age=self.validated_data["age"],
-            doctor=self.validated_data["doctor"],
-            number=self.validated_data["number"],
-        )
-        password = self.validated_data["password"]
-        password2 = self.validated_data["password2"]
+    def validate_email(self, email):
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError('Данная электронная почта уже используется!')
+        return email
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        password2 = validated_data.pop('password2')
         if password != password2:
-            raise serializers.ValidationError({password: "Пароли не совпадают!"})
+            raise serializers.ValidationError({'password': 'Пароли не совпадают!'})
+        user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
         return user
 
 
 class LoginUserSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        label="Username",
-        write_only=True
-    )
-    password = serializers.CharField(
-        label="Password",
-        style={'input_type': 'password'},
-        trim_whitespace=False,
-        write_only=True
-    )
+    email = serializers.CharField(label="email", write_only=True)
+    password = serializers.CharField(label="password", style={'input_type': 'password'}, trim_whitespace=False,
+                                     write_only=True)
+
+    # class Meta:
+    #     model = User
+    #     fields = "email password".split()
 
     def validate(self, attrs):
-        username = attrs.get('username')
+        email = attrs.get('email')
         password = attrs.get('password')
 
-        if username and password:
-            user = authenticate(request=self.context.get('request'),
-                                username=username, password=password)
-            if not user:
-                msg = 'Доступ запрещен: неправильное имя пользователя или пароль.'
-                raise serializers.ValidationError({"password": msg}, code='authorization')
-        else:
-            msg = 'Требуются как «имя пользователя», так и «пароль».'
+        if not email or not password:
+            msg = 'Требуются как «email», так и «пароль».'
             raise serializers.ValidationError(msg, code='authorization')
+
+        user = authenticate(request=self.context.get('request'),
+                            username=email, password=password)
+
+        if not user:
+            msg = 'Доступ запрещен: неправильное email или пароль.'
+            raise serializers.ValidationError({"password": msg}, code='authorization')
+
         attrs['user'] = user
-        return
+        return user

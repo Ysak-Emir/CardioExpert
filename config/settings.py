@@ -6,9 +6,9 @@ import secrets
 
 # === SETTINGS ===
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-u0%s*=1jo3_26a96m7#@7fml49@1fxvbel8_1vr-#$^6dkui-r'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 JWT_SECRET_KEY = secrets.token_urlsafe(16)
-DEBUG = True
+DEBUG = True if os.environ.get('DEBUG', 'off') == 'on' else False
 ALLOWED_HOSTS = ["*"]
 ROOT_URLCONF = 'config.urls'
 
@@ -124,11 +124,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # SMTP
-EMAIL_HOST_TLS = True
-EMAIL_HOST = 'smtp@gmail.com'
-EMAIL_HOST_USER = 'emichik.isak@gmail.com'
-EMAIL_HOST_PASSWORD = '030201krutoy4al007228##'
-EMAIL_PORT = 587
+EMAIL_HOST_TLS = os.environ.get('EMAIL_HOST_TLS')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',

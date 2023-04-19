@@ -5,12 +5,18 @@ from api.info.serializers import CategorySerializer, SubcategorySerializer
 
 
 class CategoryInformationListAPIView(generics.ListAPIView):
+    """
+    Просмотр категорий
+    """
     queryset = CategoryInformation.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (permissions.AllowAny,)
 
 
 class SubcategoryInformationListAPIView(generics.ListAPIView):
+    """
+    Просмотр подкатегорий
+    """
     queryset = SubcategoryInformation.objects.all()
     serializer_class = SubcategorySerializer
     permission_classes = (permissions.AllowAny,)

@@ -2,6 +2,7 @@ from django.db import models
 
 
 class Medication(models.Model):
+    id = models.AutoField(primary_key=True, unique=True)
     title = models.CharField(max_length=255, null=False, blank=False, verbose_name='Название')
     dosage = models.IntegerField(max_length=1000, null=False, blank=False, verbose_name='Дозировка')
     time = models.TimeField(verbose_name='Время')

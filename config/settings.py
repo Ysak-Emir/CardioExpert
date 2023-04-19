@@ -1,24 +1,26 @@
-from pathlib import Path
-from datetime import timedelta
 import os
 import sys
 import secrets
 
+from pathlib import Path
+from datetime import timedelta
+
+import environ
+
 # === SETTINGS ===
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get('SECRET_KEY')
 JWT_SECRET_KEY = secrets.token_urlsafe(16)
-DEBUG = True if os.environ.get('DEBUG', 'off') == 'on' else False
 ALLOWED_HOSTS = ["*"]
 ROOT_URLCONF = 'config.urls'
 CORS_ALLOW_ALL_ORIGINS = True
 WSGI_APPLICATION = 'config.wsgi.application'
-
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+env = environ.Env()
+DEBUG = True if os.environ.get('DEBUG', 'off') == 'on' else False
 LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # STATICFILES_DIRS = [STATIC_DIR]
@@ -28,6 +30,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "users.User"
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
 # ================
 
 # Application definition
@@ -53,7 +57,9 @@ INSTALLED_APPS = [
     'drf_yasg',
     'config',
     'corsheaders',
-] + APPS
+]
+
+INSTALLED_APPS.extend(APPS)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

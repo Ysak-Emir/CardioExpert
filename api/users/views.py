@@ -102,7 +102,7 @@ class PasswordReset(generics.GenericAPIView):
 
         # отправить reset_link по почте пользователю.
 
-        message = f'Your password rest link: {reset_link}'
+        message = f'Ваша ссылка для сброса пароля: {reset_link}'
         return Response({'message': message}, status=status.HTTP_200_OK)
 
 
@@ -123,6 +123,6 @@ class ResetPasswordAPI(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         return Response(
-            {"message": "Password reset complete"},
+            {"message": "Восстановление пароля завершено"},
             status=status.HTTP_200_OK,
         )

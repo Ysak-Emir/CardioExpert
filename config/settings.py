@@ -11,7 +11,7 @@ JWT_SECRET_KEY = secrets.token_urlsafe(16)
 DEBUG = True if os.environ.get('DEBUG', 'off') == 'on' else False
 ALLOWED_HOSTS = ["*"]
 ROOT_URLCONF = 'config.urls'
-
+CORS_ALLOW_ALL_ORIGINS = True
 WSGI_APPLICATION = 'config.wsgi.application'
 
 LANGUAGE_CODE = 'ru-ru'
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'djoser',
     'drf_yasg',
     'config',
+    'corsheaders',
 ] + APPS
 
 REST_FRAMEWORK = {
@@ -71,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',

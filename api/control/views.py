@@ -121,7 +121,7 @@ class MnoControlView(APIView):
 
 class LipidProfileView(APIView):
     """
-    Дипидный профиль
+    Липидный профиль
     """
     serializer_class = LipidSerializer
     permission_classes = (permissions.IsAuthenticated,)

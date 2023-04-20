@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import generics, filters, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,9 +11,16 @@ class MedicationCreateAPIVIew(generics.CreateAPIView):
     """
     Создание препарата
     """
-    queryset = Medication.objects.all()
+
     serializer_class = MedicationSerializer
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, )
+    def get_queryset(self):
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
+        queryset = Medication.objects.all()
+        if start_date and end_date:
+            queryset = queryset.filter(Q(start_date__gte=start_date) & Q(end_date__lte=end_date))
+        return queryset
 
 
 class MedicationListAPIView(generics.ListAPIView):
@@ -59,3 +67,5 @@ class DeleteMedicationByNameAPIView(APIView):
                 return Response({'error': f'Препарат: "{title}" не существует'})
         else:
             return Response(serializer.errors, status=400)
+
+

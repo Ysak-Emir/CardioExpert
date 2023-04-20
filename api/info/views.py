@@ -10,7 +10,7 @@ class CategoryInformationListAPIView(generics.ListAPIView):
     """
     queryset = CategoryInformation.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class SubcategoryInformationListAPIView(generics.ListAPIView):
@@ -19,4 +19,6 @@ class SubcategoryInformationListAPIView(generics.ListAPIView):
     """
     queryset = SubcategoryInformation.objects.all()
     serializer_class = SubcategorySerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+

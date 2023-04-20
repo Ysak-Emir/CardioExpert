@@ -17,12 +17,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True, verbose_name="Активность")
     is_staff = models.BooleanField(default=False, verbose_name="Менеджер")
     is_superuser = models.BooleanField(default=False, verbose_name="Суперпользователь")
-    activation_key = models.CharField(max_length=40, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
 
     @property
     def get_fullname(self):
@@ -30,4 +33,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-

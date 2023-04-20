@@ -1,0 +1,32 @@
+version: "3.3"
+
+services:
+  sqlite3:
+    container_name: sqlite3_cardio-expert
+    image: nouchka/sqlite3:latest
+    stdin_open: true
+    tty: true
+    volumes:
+      #Modify following line
+      - ./db/:/root/db/
+    restart: unless-stopped
+
+  sqlite3_back:
+    container_name: cardio-expert
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic
+      --no-input && gunicorn -b 0.0.0.0:8000 config.wsgi --reload"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./static:/static
+    ports:
+      - "8000:8000"
+    depends_on:
+      - sqlite3
+    links:
+      - sqlite3

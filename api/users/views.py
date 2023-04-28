@@ -26,19 +26,22 @@ class RegisterUserAPIView(CreateAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
-        serializer = UserRegisterSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            response = {
-                "message": "Регистрация прошла успешно!",
-                "data": serializer.data
-            }
-            return Response(data=response)
-        else:
-            data = serializer.errors
-            return Response({"message": "Что-то пошло не так!",
-                             "data": data})
+        try:
+            data = request.data
+            serializer = UserRegisterSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                response = {
+                    "message": "Регистрация прошла успешно!",
+                    "data": serializer.data
+                }
+                return Response(data=response)
+            else:
+                data = serializer.errors
+                return Response({"message": "Что-то пошло не так!",
+                                 "data": data})
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLoginAPIView(generics.GenericAPIView):

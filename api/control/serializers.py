@@ -1,34 +1,42 @@
 from rest_framework import serializers
 
-
-class BMIInputSerializer(serializers.Serializer):
-    weight = serializers.FloatField()
-    height = serializers.FloatField()
+from api.control.models import BMI, BloodPressure, Pulse, Fluid, MNO, LipidProfile
 
 
-class BloodPressureInputSerializer(serializers.Serializer):
-    systolic = serializers.IntegerField()
-    diastolic = serializers.IntegerField()
+class BMIInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BMI
+        fields = '__all__'
 
 
-class PulseInputSerializer(serializers.Serializer):
-    pulse = serializers.IntegerField()
-    cycle_duration = serializers.DecimalField(max_digits=5, decimal_places=2)
+class BloodPressureInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BloodPressure
+        fields = '__all__'
 
 
-class FluidInputSerializer(serializers.Serializer):
-    fluid_intake = serializers.DecimalField(max_digits=6, decimal_places=2)
-    fluid_output = serializers.DecimalField(max_digits=6, decimal_places=2)
+class PulseInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pulse
+        fields = '__all__'
 
 
-class MNOControlSerializer(serializers.Serializer):
-    mno = serializers.FloatField(min_value=0.1, max_value=10.0)
+class FluidInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fluid
+        fields = '__all__'
 
 
-class LipidSerializer(serializers.Serializer):
-    cholesterol = serializers.FloatField()
-    ldl = serializers.FloatField()
-    hdl = serializers.FloatField()
-    triglycerides = serializers.FloatField()
+class MNOControlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MNO
+        fields = '__all__'
+
+
+class LipidSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LipidProfile
+        fields = '__all__'
+
 
 

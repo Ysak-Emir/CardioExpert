@@ -7,7 +7,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CategoryInformation
-        fields = 'id title'.split()
+        fields = 'id title_rus title_kz'.split()
 
 
 class SubcategorySerializer(serializers.ModelSerializer):
@@ -15,8 +15,8 @@ class SubcategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubcategoryInformation
-        fields = 'id profile_picture title description block'.split()
+        fields = 'id profile_picture title description_rus description_kz block'.split()
 
     def get_block(self, instance):
-        return instance.block.title
+        return instance.block.title_rus
 

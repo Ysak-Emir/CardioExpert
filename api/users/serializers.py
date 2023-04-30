@@ -16,6 +16,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework.response import Response
 from django.core.mail import send_mail
+
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, write_only=True)
     name = serializers.CharField(max_length=50, min_length=3, write_only=True)
@@ -45,23 +47,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-    # def send_email_confirmation(self):
-    #     user = self.instance
-    #     uid = urlsafe_base64_encode(force_bytes(user.pk)).encode().decode()
-    #     token = account_activation_token.make_token(user)
-    #     confirmation_link = reverse('confirm_account', kwargs={'uidb64': uid, 'token': token})
-    #     message = f'Please click the link below to confirm your account:\n\n{confirmation_link}'
-    #     send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
-
 
 class LoginUserSerializer(serializers.Serializer):
     email = serializers.CharField(label="email", write_only=True)
     password = serializers.CharField(label="password", style={'input_type': 'password'}, trim_whitespace=False,
                                      write_only=True)
 
-    # class Meta:
-    #     model = User
-    #     fields = "email password".split()
 
     def validate(self, attrs):
         email = attrs.get('email')

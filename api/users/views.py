@@ -1,20 +1,21 @@
 import rest_framework_simplejwt
 from django.contrib.auth import authenticate
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.shortcuts import get_object_or_404
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.contrib.auth.hashers import make_password
+from django.shortcuts import redirect
 from rest_framework import generics, permissions, status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from api.users import serializers
 from api.users.models import User
-from api.users.serializers import UserRegisterSerializer, LogoutSerializer, EmailSerializer
-from config import settings
+from api.users.serializers import UserRegisterSerializer, LogoutSerializer, PasswordResetSerializer, \
+    PasswordResetConfirmSerializer
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+
+from config.settings import EMAIL_HOST_USER
 
 
 class RegisterUserAPIView(CreateAPIView):
@@ -42,6 +43,8 @@ class RegisterUserAPIView(CreateAPIView):
                                  "data": data})
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class UserLoginAPIView(generics.GenericAPIView):
@@ -78,54 +81,60 @@ class LogoutAPIView(generics.GenericAPIView):
         return Response({"message": "Вы вышли из системы!"}, status=status.HTTP_204_NO_CONTENT)
 
 
-PASSWORD_RESET_URL = 'reset-password'
-JWT_SECRET_KEY = settings.SECRET_KEY
-
-
-class PasswordReset(generics.GenericAPIView):
+class PasswordResetView(generics.CreateAPIView):
     """
-    Запрос на сброс пароля
+    Сброс пароля
     """
-    serializer_class = EmailSerializer
-    permission_classes = (AllowAny,)
+    serializer_class = PasswordResetSerializer
+    permission_classes = (permissions.AllowAny, )
 
-    def post(self, request):
-        """
-        Создание токена
-        """
-        serializer = self.serializer_class(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         email = serializer.validated_data['email']
-        user = get_object_or_404(User, email=email)
+        user = User.objects.filter(email=email).first()
 
-        encoded_pk = urlsafe_base64_encode(force_bytes(user.pk))
-        token = PasswordResetTokenGenerator().make_token(user)
-        reset_url = reverse(PASSWORD_RESET_URL, kwargs={'encoded_pk': encoded_pk, 'token': token})
-        reset_link = f'http://localhost:8000{reset_url}'
+        if user:
+            token = default_token_generator.make_token(user)
+            self.send_reset_email(user, token)
 
-        # отправить reset_link по почте пользователю.
+        return Response({'message': 'Письмо для сброса пароля было успешно отправлено.'}, status=status.HTTP_200_OK)
 
-        message = f'Ваша ссылка для сброса пароля: {reset_link}'
-        return Response({'message': message}, status=status.HTTP_200_OK)
+    def send_reset_email(self, user, token):
+        reset_url = self.get_reset_url(user, token)
+
+        email_subject = 'Сброс пароля'
+        email_message = f'Для сброса пароля перейдите по ссылке: {reset_url}'
+        send_mail(email_subject, email_message, EMAIL_HOST_USER, [user.email])
+
+    def get_reset_url(self, user, token):
+        # Генерируйте URL для сброса пароля
+        return self.request.build_absolute_uri(reverse('password-reset-confirm', args=[user.id, token]))
 
 
-class ResetPasswordAPI(generics.GenericAPIView):
+class PasswordResetConfirmView(generics.GenericAPIView):
     """
-    Проверка и сброс пароля Токена
+    Подтверждение сброса пароля
     """
+    serializer_class = PasswordResetConfirmSerializer
+    authentication_classes = []
+    permission_classes = (permissions.AllowAny, )
 
-    serializer_class = serializers.ResetPasswordSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def patch(self, request, *args, **kwargs):
-        """
-        Проверка токена и encoded_pk, а затем сброс пароля
-        """
-        serializer = self.serializer_class(
-            data=request.data, context={"kwargs": kwargs}
-        )
+    def post(self, request, user_id, token):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(
-            {"message": "Восстановление пароля завершено"},
-            status=status.HTTP_200_OK,
-        )
+
+        user = User.objects.filter(id=user_id).first()
+
+        if user and default_token_generator.check_token(user, token):
+            new_password = serializer.validated_data['new_password']
+            user.password = make_password(new_password)
+            user.save()
+            return Response({"message": "Пароль сброшен"},status=status.HTTP_200_OK)
+
+        else:
+            return Response({"message": "Что-то пошло не так! Возможно вы уже сбросили пароль."},status=status.HTTP_400_BAD_REQUEST)
+
+
+

@@ -1,13 +1,13 @@
 import os
 import sys
 import secrets
-
+import django.urls
 from pathlib import Path
 from datetime import timedelta
-
 import environ
-
 # === SETTINGS ===
+dotenv_path = Path(__file__).resolve().parent.parent / '.env'
+environ.Env.read_env(dotenv_path)
 BASE_DIR = Path(__file__).resolve().parent.parent
 JWT_SECRET_KEY = secrets.token_urlsafe(16)
 ALLOWED_HOSTS = ["*"]
@@ -32,6 +32,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.User"
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+BASE_URL = 'smtps://username:password@smtp.yandex.ru:465'
 # ================
 
 # Application definition
@@ -132,11 +134,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # SMTP
-EMAIL_HOST_TLS = os.environ.get('EMAIL_HOST_TLS')
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS').lower() == 'true'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL').lower() == 'true'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',

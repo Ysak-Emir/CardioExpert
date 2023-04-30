@@ -2,14 +2,20 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.core.mail import send_mail
+from django.conf import settings
 from .models import User
-from rest_framework import serializers
+from rest_framework import serializers, generics, status
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from django.contrib.auth.forms import PasswordResetForm
-
-
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from rest_framework.response import Response
+from django.core.mail import send_mail
 class UserRegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, write_only=True)
     name = serializers.CharField(max_length=50, min_length=3, write_only=True)
@@ -34,10 +40,18 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         password2 = validated_data.pop('password2')
         if password != password2:
             raise serializers.ValidationError({'password': 'Пароли не совпадают!'})
-        user = User.objects.create(**validated_data)
+        user = User.objects.create(**validated_data, is_email_verified=False)
         user.set_password(password)
         user.save()
         return user
+
+    # def send_email_confirmation(self):
+    #     user = self.instance
+    #     uid = urlsafe_base64_encode(force_bytes(user.pk)).encode().decode()
+    #     token = account_activation_token.make_token(user)
+    #     confirmation_link = reverse('confirm_account', kwargs={'uidb64': uid, 'token': token})
+    #     message = f'Please click the link below to confirm your account:\n\n{confirmation_link}'
+    #     send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
 
 class LoginUserSerializer(serializers.Serializer):
@@ -83,47 +97,11 @@ class LogoutSerializer(serializers.Serializer):
             self.fail('bad token')
 
 
-class EmailSerializer(serializers.Serializer):
-    """
-    Reset Password Email Request Serializer.
-    """
-
+class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
-    class Meta:
-        fields = ("email",)
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(max_length=128)
 
 
-
-class ResetPasswordSerializer(serializers.Serializer):
-    """
-    Reset Password Serializer.
-    """
-
-    password = serializers.CharField(
-        write_only=True,
-        min_length=1,
-    )
-
-    class Meta:
-        field = ("password")
-
-    def validate(self, data):
-        """
-        Verify token and encoded_pk and then set new password.
-        """
-        password = data.get("password")
-        token = self.context.get("kwargs").get("token")
-        encoded_pk = self.context.get("kwargs").get("encoded_pk")
-
-        if token is None or encoded_pk is None:
-            raise serializers.ValidationError("Missing data.")
-
-        pk = urlsafe_base64_decode(encoded_pk).decode()
-        user = User.objects.get(pk=pk)
-        if not PasswordResetTokenGenerator().check_token(user, token):
-            raise serializers.ValidationError("The reset token is invalid")
-
-        user.set_password(password)
-        user.save()
-        return data

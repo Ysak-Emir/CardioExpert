@@ -17,7 +17,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True, verbose_name="Активность")
     is_staff = models.BooleanField(default=False, verbose_name="Менеджер")
     is_superuser = models.BooleanField(default=False, verbose_name="Суперпользователь")
-    is_email_verified = models.BooleanField(default=False, verbose_name="Подтвержден:")
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

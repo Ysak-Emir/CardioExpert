@@ -1,7 +1,6 @@
 import rest_framework_simplejwt
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
-from django.shortcuts import redirect
 from rest_framework import generics, permissions, status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated

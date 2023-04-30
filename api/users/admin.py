@@ -13,8 +13,7 @@ class UsersAdmin(admin.ModelAdmin):
                     "number",
                     "is_active",
                     "is_staff",
-                    "is_superuser",
-                    "is_email_verified")
+                    "is_superuser",)
     list_display_links = ("id", "email", "name", "surname")
     search_fields = ("email", "name", "surname", "age", )
     list_per_page = 12

@@ -1,21 +1,9 @@
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_decode
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.mail import send_mail
-from django.conf import settings
 from .models import User
-from rest_framework import serializers, generics, status
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from django.contrib.auth.forms import PasswordResetForm
-from django.urls import reverse
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
-from rest_framework.response import Response
-from django.core.mail import send_mail
+
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
